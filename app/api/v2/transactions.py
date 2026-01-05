@@ -9,7 +9,6 @@ from services.transaction_service import TransactionService
 from services.reference_service import ReferenceService
 from deps.auth_v2 import (
     get_current_user_v2,
-    get_current_user_role_v2,
     require_operador_v2,
     require_aprobador_v2
 )
@@ -54,8 +53,8 @@ async def crear_transaccion_v2(
         currency=transaccion.currency
     )
     
-    # Usar user.email como created_by para trazabilidad
-    user_id = f"{current_user.email}"
+    # Usar user_id (op-001, ap-001) para trazabilidad
+    user_id = current_user.user_id
     user_role = current_user.role.value
     
     # Crear la transacción
@@ -105,15 +104,15 @@ async def aprobar_transaccion_v2(
     """
     ## Mejoras v2:
     - ✅ Validación JWT real
-    - ✅ Registro del aprobador con email real
+    - ✅ Registro del aprobador con user_id
     """
-    user_id = current_user.email
+    user_id = current_user.user_id  # ap-001, ap-002, etc.
     user_role = current_user.role.value
     
     transaction = TransactionService.aprobar_transaccion(db, transaction_id, user_id, user_role)
     
     return MessageResponse(
-        message=f"Transacción aprobada por {current_user.nombre}",
+        message=f"Transacción aprobada por {current_user.nombre} ({user_id})",
         transaction_id=transaction.transaction_id,
         status=transaction.status
     )
@@ -214,9 +213,9 @@ async def listar_transacciones_v2(
     - ✅ El APROBADOR ve todas las pendientes de aprobación
     """
     if current_user.role.value == "OPERADOR":
-        # OPERADOR solo ve sus transacciones
+        # OPERADOR solo ve sus transacciones (filtradas por user_id: op-001, op-002, etc.)
         transactions = db.query(crud_transaction.Transaction).filter(
-            crud_transaction.Transaction.created_by == current_user.email
+            crud_transaction.Transaction.created_by == current_user.user_id
         ).offset(skip).limit(limit).all()
     else:
         # APROBADOR ve todas
