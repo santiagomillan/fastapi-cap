@@ -1,0 +1,22 @@
+# Requirements simplificados para Railway (sin compilación de Rust)
+# Usa Pydantic v1 que no requiere pydantic-core
+
+# FastAPI y servidor
+fastapi==0.104.1
+uvicorn==0.24.0
+
+# Base de datos
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# Autenticación (PyJWT simple, sin cryptography pesada)
+pyjwt==2.8.0
+passlib==1.7.4
+bcrypt==4.1.2
+python-multipart==0.0.6
+
+# Validación (Pydantic v1 - NO requiere Rust)
+pydantic==1.10.13
+
+# Utilidades
+python-dotenv==1.0.0
